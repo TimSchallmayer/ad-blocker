@@ -1,15 +1,7 @@
-#include <iostream>
-#include <cstdio>
-#include <stdbool.h>
 #include "main.h"
-#include <WinSock2.h>
 #include <Windows.h>
-#include <iphlpapi.h>
-#include <string>
 #include <vector>
-#pragma comment(lib, "iphlpapi.lib")
-
-
+using namespace std;
 
 void set_DNS_server(bool activate, bool is_wifi) {
     ULONG size = 0;
@@ -37,12 +29,12 @@ void set_DNS_server(bool activate, bool is_wifi) {
         printf("Could'nt set DNS-Server\n");
         return;
     }
-    std::string cmd = "";
-    if (activate) cmd = "netsh interface ipv4 set dnsservers name=" + std::to_string(i) + " static 127.0.0.1";
-    else cmd = "netsh interface ipv4 set dnsservers name=" + std::to_string(i) + " dhcp";
+    string cmd = "";
+    if (activate) cmd = "netsh interface ipv4 set dnsservers name=" + to_string(i) + " static 127.0.0.1";
+    else cmd = "netsh interface ipv4 set dnsservers name=" + to_string(i) + " dhcp";
     
-    std::cout << cmd << std::endl;
-    std::vector<char> command(cmd.begin(), cmd.end());
+    cout << cmd << endl;
+    vector<char> command(cmd.begin(), cmd.end());
     command.push_back('\0');
     STARTUPINFOA start_info = { sizeof(start_info) };
     PROCESS_INFORMATION process_info;
@@ -55,4 +47,18 @@ void set_DNS_server(bool activate, bool is_wifi) {
     CloseHandle(process_info.hProcess);
     CloseHandle(process_info.hThread);
     return;
+}
+
+SOCKET create_socket(int port) {
+    
+    SOCKET sckt = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+    struct sockaddr_in svr_adr;
+    svr_adr.sin_port = port;
+    svr_adr.sin_family = AF_INET;
+    svr_adr.sin_addr.s_addr = INADDR_ANY;
+
+    bind(sckt, (struct sockaddr*)&svr_adr, sizeof(svr_adr));
+
+    return sckt;
 }
