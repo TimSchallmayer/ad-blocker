@@ -62,3 +62,7 @@ SOCKET create_socket(int port) {
 
     return sckt;
 }
+void process_packets(char* buffer, int bytes) {
+    //packet auslesen
+    return;
+}
