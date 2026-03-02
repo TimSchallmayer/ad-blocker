@@ -62,7 +62,14 @@ SOCKET create_socket(int port) {
 
     return sckt;
 }
-void process_packets(char* buffer, int bytes) {
+void process_packets(char* speicher, int bytes) {
     //packet auslesen
+    if (bytes < 12) return; //zuklein
+
+    unsigned short id = ntohs(*(unsigned short*)speicher);
+    unsigned short flags = ntohs(*(unsigned short*)speicher + 2);
+    unsigned short qcount = ntohs(*(unsigned short*)speicher + 4);
+    bool is_anfrage = (flags & 0x8000);
+    cout << "Paket empfagen. ID: " << id << "Typ:" << (is_anfrage ? "Anfrage" : "Antwort")<< "Anzahl der Adressen: " << qcount << endl;
     return;
 }
