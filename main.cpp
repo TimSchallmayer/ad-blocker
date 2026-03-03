@@ -28,7 +28,8 @@ int main() {
             inet_ntop(AF_INET, &user_adrr.sin_addr, user_ip, INET_ADDRSTRLEN);
             cout << "Paket von " << user_ip << " erhalten (" << recvbytes << " Bytes)." << endl;
             DNS_HEADER packet_header = process_packets(speicher, recvbytes); 
-            
+            DNS_body packet_body = parse_dns_packet(speicher, packet_header);
+            if (packet_body.qname == NULL) ; //skip
         }   
     }
 

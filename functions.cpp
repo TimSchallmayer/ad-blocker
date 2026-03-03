@@ -54,7 +54,7 @@ SOCKET create_socket(int port) {
     SOCKET sckt = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
     struct sockaddr_in svr_adr;
-    svr_adr.sin_port = port;
+    svr_adr.sin_port = htons(port);
     svr_adr.sin_family = AF_INET;
     svr_adr.sin_addr.s_addr = INADDR_ANY;
 
@@ -80,4 +80,21 @@ DNS_HEADER process_packets(char* speicher, int bytes) {
     header.authcount = 0;
     header.is_anfrage = is_anfrage;
     return header;
+}
+DNS_body parse_dns_packet(unsigned char* speicher, DNS_HEADER header) {
+
+    if (header.qcount <= 0) return {NULL, NULL, NULL};
+
+    int offset = 12;
+    string name = "";
+    for (; speicher + offset != 0x00; offset++) {
+        name += *(char*)speicher + offset;
+    }   
+    offset += 1;
+    bool is_web = ntohs(*(unsigned short*)speicher + offset) == 1 ? true : false;
+    offset += 2;
+    unsigned short qclass = ntohs(*(unsigned short*)speicher + offset);
+    if (qclass = 0x01) return {NULL, NULL, NULL};
+
+    return {is_web, name.c_str(), qclass};
 }
