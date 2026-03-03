@@ -21,15 +21,20 @@ struct DNS_HEADER {
 };
 struct DNS_body {
     bool is_web;
-    const char* qname;
+    std::string qname;
     unsigned short qclass;
 };
 
 // funtctions
 void set_DNS_server(bool activate, bool is_wifi);
 // setzt die DNS server einstellung für Windows auf localhost oder auf DHCP, sollte activate false sein. is_wifi entscheidet ob der Wlan Adapter umgestellt wird das Ethernet.
-SOCKET create_socket(int port);
-// erstellt einen Socket auf dem angegebenen Port und gibt diesen zurück. Bei Fehlern wird INVALID_SOCKET zurückgegeben.
-DNS_HEADER process_packets(char* speicher, int bytes);
+SOCKET create_recv_socket(int port);
+// erstellt einen Socket, der auf Datenpakete wartet auf dem angegebenen Port und gibt diesen zurück. Bei Fehlern wird INVALID_SOCKET zurückgegeben.
+DNS_HEADER process_packets_header(unsigned char* speicher, int bytes);
 // verarbetiett die header der pakete die der dns server empfängt
-DNS_body parse_dns_packet(char* speicher, DNS_HEADER header);
+DNS_body parse_dns_packet( unsigned char* speicher, DNS_HEADER header);
+// verarbeitet den body der packet die der dns server empfängt
+SOCKET create_send_socket(int port);
+// erstellt einen Socket der pakte zum DNS server sendet auf dem angegebenen Port und gibt diesen zurück. Bei Fehlern wird INVALID_SOCKET zurückgegeben.
+void skipforward(char * speicher, int len, SOCKET sckt);
+// sendet das packet an einen dns server

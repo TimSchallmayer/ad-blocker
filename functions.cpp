@@ -49,7 +49,7 @@ void set_DNS_server(bool activate, bool is_wifi) {
     return;
 }
 
-SOCKET create_socket(int port) {
+SOCKET create_recv_socket(int port) {
     
     SOCKET sckt = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
@@ -62,15 +62,20 @@ SOCKET create_socket(int port) {
 
     return sckt;
 }
-DNS_HEADER process_packets(char* speicher, int bytes) {
-    //packet auslesen
-    if (bytes < 12) return; //zuklein
+SOCKET create_send_socket(int port) {
+    SOCKET sckt = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    return sckt;
 
-    unsigned short id = ntohs(*(unsigned short*)speicher);
-    unsigned short flags = ntohs(*(unsigned short*)speicher + 2);
-    unsigned short qcount = ntohs(*(unsigned short*)speicher + 4);
+}
+DNS_HEADER process_packets_header(unsigned char* speicher, int bytes) {
+    //packet auslesen
+    if (bytes < 12) return {NULL, NULL, NULL, NULL, NULL, NULL, NULL}; //zuklein
+
+    unsigned short id = ntohs(*(unsigned short*)(speicher));
+    unsigned short flags = ntohs(*(unsigned short*)(speicher + 2));
+    unsigned short qcount = ntohs(*(unsigned short*)(speicher + 4));
     bool is_anfrage = (flags & 0x8000);
-    cout << "Paket empfagen. ID: " << id << "Typ:" << (is_anfrage ? "Anfrage" : "Antwort")<< "Anzahl der Adressen: " << qcount << endl;
+    cout << "Paket empfagen. ID: " << id << " Typ: " << (is_anfrage ? " Anfrage " : " Antwort ")<< " Anzahl der Adressen: " << qcount << endl;
     DNS_HEADER header;
     header.id = id;
     header.flags = flags;
@@ -84,17 +89,26 @@ DNS_HEADER process_packets(char* speicher, int bytes) {
 DNS_body parse_dns_packet(unsigned char* speicher, DNS_HEADER header) {
 
     if (header.qcount <= 0) return {NULL, NULL, NULL};
-
+    cout << "1";
     int offset = 12;
     string name = "";
-    for (; speicher + offset != 0x00; offset++) {
-        name += *(char*)speicher + offset;
-    }   
+    for (; speicher + offset != 0x00; offset++) { // IRGENTWO HIER HÄNGT ES SICH AUF!!!!
+        name += *(char*)(speicher + offset);
+    } 
+    cout << "2";  
     offset += 1;
-    bool is_web = ntohs(*(unsigned short*)speicher + offset) == 1 ? true : false;
+    bool is_web = ntohs(*(unsigned short*)(speicher + offset)) == 1 ? true : false;
     offset += 2;
-    unsigned short qclass = ntohs(*(unsigned short*)speicher + offset);
-    if (qclass = 0x01) return {NULL, NULL, NULL};
-
-    return {is_web, name.c_str(), qclass};
+    unsigned short qclass = ntohs(*(unsigned short*)(speicher + offset));
+    if (qclass == 0x01) return {NULL, NULL, NULL};
+    cout << "Erfolgreich dns packet geparst. Name:" << name << "Web?:" << is_web << "Klasse" << qclass << endl;
+    cout << "1";
+    return {is_web, name, qclass};
+}
+void skipforward(char * speicher, int len, SOCKET sckt) {
+    struct sockaddr_in svr_adr;
+    svr_adr.sin_family = AF_INET;
+    inet_pton(AF_INET, "8.8.8.8", &svr_adr); // schlechte lösung weil das hier ja eigentlich ausfallen könnte und man sollte am besten merhere ooptionen haben
+    sendto(sckt, speicher, len, 0, (sockaddr*)&svr_adr, sizeof(svr_adr));
+    return;
 }
