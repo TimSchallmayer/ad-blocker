@@ -62,7 +62,7 @@ SOCKET create_socket(int port) {
 
     return sckt;
 }
-void process_packets(char* speicher, int bytes) {
+DNS_HEADER process_packets(char* speicher, int bytes) {
     //packet auslesen
     if (bytes < 12) return; //zuklein
 
@@ -71,5 +71,13 @@ void process_packets(char* speicher, int bytes) {
     unsigned short qcount = ntohs(*(unsigned short*)speicher + 4);
     bool is_anfrage = (flags & 0x8000);
     cout << "Paket empfagen. ID: " << id << "Typ:" << (is_anfrage ? "Anfrage" : "Antwort")<< "Anzahl der Adressen: " << qcount << endl;
-    return;
+    DNS_HEADER header;
+    header.id = id;
+    header.flags = flags;
+    header.qcount = qcount;
+    header.addcount = 0;
+    header.ans_count = 0;
+    header.authcount = 0;
+    header.is_anfrage = is_anfrage;
+    return header;
 }
