@@ -3,7 +3,7 @@
 using namespace std;
 
 int main() {
-    system("powershell -Command \"[Console]::OutputEncoding = [System.Text.Encoding]::UTF8\"");
+    system("powershell -Command \"[Console]::OutputEncoding = [System.Text.Encoding]::UTF8\""); //utf8 terminal
     printf("Hallo Welt!\n"); 
     set_DNS_server(false, true);
     set_DNS_server(false, false);
