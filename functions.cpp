@@ -86,23 +86,35 @@ DNS_HEADER process_packets_header(unsigned char* speicher, int bytes) {
     header.is_anfrage = is_anfrage;
     return header;
 }
-DNS_body parse_dns_packet(unsigned char* speicher, DNS_HEADER header) {
-
+DNS_body parse_dns_packet(unsigned char* speicher, DNS_HEADER header, int recv_bytes) {
     if (header.qcount <= 0) return {NULL, NULL, NULL};
-    cout << "1";
     int offset = 12;
     string name = "";
-    for (; speicher + offset != 0x00; offset++) { // IRGENTWO HIER HÄNGT ES SICH AUF!!!!
-        name += *(char*)(speicher + offset);
-    } 
-    cout << "2";  
+    int lenght = 0;
+    for (; offset < recv_bytes && speicher[offset] != 0x00 ; offset++) { 
+        if (lenght == 0) {
+            lenght = speicher[offset];
+            if (offset != 12) name += '.';
+        }
+        else if (lenght > 0) {
+            lenght -= 1;
+            name += speicher[offset];
+            }
+    }  
+    if (offset +1 > recv_bytes) return {NULL, NULL, NULL};
+
     offset += 1;
-    bool is_web = ntohs(*(unsigned short*)(speicher + offset)) == 1 ? true : false;
+    unsigned short tmp;
+    memcpy(&tmp, speicher + offset, sizeof(unsigned short));
+    bool is_web = ntohs(tmp) == 1;
+    if (offset + 2 > recv_bytes) return {NULL, NULL, NULL};
     offset += 2;
-    unsigned short qclass = ntohs(*(unsigned short*)(speicher + offset));
-    if (qclass == 0x01) return {NULL, NULL, NULL};
-    cout << "Erfolgreich dns packet geparst. Name:" << name << "Web?:" << is_web << "Klasse" << qclass << endl;
-    cout << "1";
+    memcpy(&tmp, speicher + offset, sizeof(unsigned short));
+    unsigned short qclass = ntohs(tmp);
+
+
+    if (qclass != 0x01) return {NULL, NULL, NULL};
+    cout << "Erfolgreich dns packet geparst. Name: " << name << " Web?:" << is_web << " Klasse: " << qclass << endl;
     return {is_web, name, qclass};
 }
 void skipforward(char * speicher, int len, SOCKET sckt) {

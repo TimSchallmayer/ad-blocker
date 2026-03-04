@@ -3,9 +3,10 @@
 using namespace std;
 
 int main() {
+    system("powershell -Command \"[Console]::OutputEncoding = [System.Text.Encoding]::UTF8\"");
     printf("Hallo Welt!\n"); 
-    set_DNS_server(true, true);
-    set_DNS_server(true, false);
+    set_DNS_server(false, true);
+    set_DNS_server(false, false);
 
     WSADATA wsa;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) return 1;
@@ -30,7 +31,7 @@ int main() {
             inet_ntop(AF_INET, &user_adrr.sin_addr, user_ip, INET_ADDRSTRLEN);
             cout << "Paket von " << user_ip << " erhalten (" << recvbytes << " Bytes)." << endl;
             DNS_HEADER packet_header = process_packets_header(speicher, recvbytes); 
-            DNS_body packet_body = parse_dns_packet(speicher, packet_header);
+            DNS_body packet_body = parse_dns_packet(speicher, packet_header, recvbytes);
             if (packet_body.is_web == NULL) 
             ; //skip
             //zum test erstmal alle weiter leiten

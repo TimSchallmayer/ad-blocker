@@ -32,7 +32,7 @@ SOCKET create_recv_socket(int port);
 // erstellt einen Socket, der auf Datenpakete wartet auf dem angegebenen Port und gibt diesen zurück. Bei Fehlern wird INVALID_SOCKET zurückgegeben.
 DNS_HEADER process_packets_header(unsigned char* speicher, int bytes);
 // verarbetiett die header der pakete die der dns server empfängt
-DNS_body parse_dns_packet( unsigned char* speicher, DNS_HEADER header);
+DNS_body parse_dns_packet( unsigned char* speicher, DNS_HEADER header, int recv_bytes);
 // verarbeitet den body der packet die der dns server empfängt
 SOCKET create_send_socket(int port);
 // erstellt einen Socket der pakte zum DNS server sendet auf dem angegebenen Port und gibt diesen zurück. Bei Fehlern wird INVALID_SOCKET zurückgegeben.
