@@ -1,6 +1,5 @@
 #include "main.h"
 #include <Windows.h>
-#include <vector>
 using namespace std;
 
 void set_DNS_server(bool activate, bool is_wifi) {
@@ -51,20 +50,20 @@ void set_DNS_server(bool activate, bool is_wifi) {
 
 SOCKET create_recv_socket(int port) {
     
-    SOCKET sckt = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    SOCKET send_sckt = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
     struct sockaddr_in svr_adr;
     svr_adr.sin_port = htons(port);
     svr_adr.sin_family = AF_INET;
     svr_adr.sin_addr.s_addr = INADDR_ANY;
 
-    bind(sckt, (struct sockaddr*)&svr_adr, sizeof(svr_adr));
+    bind(send_sckt, (struct sockaddr*)&svr_adr, sizeof(svr_adr));
 
-    return sckt;
+    return send_sckt;
 }
 SOCKET create_send_socket(int port) {
-    SOCKET sckt = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    return sckt;
+    SOCKET send_sckt = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    return send_sckt;
 
 }
 DNS_HEADER process_packets_header(unsigned char* speicher, int bytes) {
@@ -117,10 +116,41 @@ DNS_body parse_dns_packet(unsigned char* speicher, DNS_HEADER header, int recv_b
     cout << "Erfolgreich dns packet geparst. Name: " << name << " Web?:" << is_web << " Klasse: " << qclass << endl;
     return {is_web, name, qclass};
 }
-void skipforward(char * speicher, int len, SOCKET sckt) {
-    struct sockaddr_in svr_adr;
-    svr_adr.sin_family = AF_INET;
-    inet_pton(AF_INET, "8.8.8.8", &svr_adr); // schlechte lösung weil das hier ja eigentlich ausfallen könnte und man sollte am besten merhere ooptionen haben
-    sendto(sckt, speicher, len, 0, (sockaddr*)&svr_adr, sizeof(svr_adr));
+void skipforward(char * speicher, int len, SOCKET send_sckt, vector<string> dns_adrrss, int index, sockaddr_in user_addr, int addr_len, SOCKET main_socket) {
+    for (string dns_adrr : dns_adrrss) 
+    {
+        struct sockaddr_in svr_adr;
+        memset(&svr_adr, 0, sizeof(svr_adr));
+        svr_adr.sin_family = AF_INET;
+        svr_adr.sin_port = htons(53);
+        inet_pton(AF_INET, dns_adrr.c_str(), &svr_adr.sin_addr); // schlechte lösung weil das hier ja eigentlich ausfallen könnte und man sollte am besten merhere ooptionen haben
+        int result = sendto(send_sckt, speicher, len, 0, (sockaddr*)&svr_adr, sizeof(svr_adr));
+        if (result == -1) {
+            cout << "ERROR beim verschicken" << endl;
+            return;
+        } 
+        cout << "Erfolgreich Bytes versendet: " << len << endl;
+        int timeout = 2000;
+        setsockopt(send_sckt, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));;
+
+        sockaddr_in recv_addr;
+        int recv_addr_size = sizeof(recv_addr);
+        unsigned char recv_speicher[1024];
+
+        int recv_bytes = recvfrom(send_sckt, (char *)&recv_speicher, sizeof(recv_speicher), 0, (struct sockaddr*)&recv_addr, &recv_addr_size);
+        cout << "Antwort Bytes: " << recv_bytes << endl;
+        if (recv_bytes == SOCKET_ERROR)
+        {
+            if (index +1 >= dns_adrrss.size())
+            {
+                cout << "DNS Servers not reachable" << endl;
+                return;
+            }
+            index += 1;
+            continue;
+        }
+        int res = sendto(main_socket, (char *)recv_speicher, recv_bytes, 0, (struct sockaddr*)&user_addr, addr_len);
+        if (res == -1) cout << "Fehler beim senden der antwort" << endl;
+    }
     return;
 }

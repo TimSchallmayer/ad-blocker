@@ -5,6 +5,7 @@
 #include <string>
 #include <WinSock2.h>
 #include <iphlpapi.h>
+#include <vector>
 #include <WS2tcpip.h>
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "ws2_32.lib")
@@ -36,5 +37,5 @@ DNS_body parse_dns_packet( unsigned char* speicher, DNS_HEADER header, int recv_
 // verarbeitet den body der packet die der dns server empfängt
 SOCKET create_send_socket(int port);
 // erstellt einen Socket der pakte zum DNS server sendet auf dem angegebenen Port und gibt diesen zurück. Bei Fehlern wird INVALID_SOCKET zurückgegeben.
-void skipforward(char * speicher, int len, SOCKET sckt);
+void skipforward(char * speicher, int len, SOCKET sckt, std::vector<std::string> dns_adrrss, int index, sockaddr_in user_addr, int addr_len, SOCKET main_socket);
 // sendet das packet an einen dns server

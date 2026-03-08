@@ -5,9 +5,9 @@ using namespace std;
 int main() {
     system("powershell -Command \"[Console]::OutputEncoding = [System.Text.Encoding]::UTF8\""); //utf8 terminal
     printf("Hallo Welt!\n"); 
-    set_DNS_server(false, true);
-    set_DNS_server(false, false);
-
+    set_DNS_server(true, true);
+    set_DNS_server(true, false);
+    vector<string> dns_adrrss = {"9.9.9.9", "8.8.8.8", "1.1.1.1"};
     WSADATA wsa;
     if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) return 1;
 
@@ -25,17 +25,19 @@ int main() {
             if (recvbytes == SOCKET_ERROR)
             {
                 cout << "Error recieving the packages." << "Error: " << WSAGetLastError() << endl;
-                return 1;
+                continue;
             }
             char user_ip[INET_ADDRSTRLEN];
             inet_ntop(AF_INET, &user_adrr.sin_addr, user_ip, INET_ADDRSTRLEN);
             cout << "Paket von " << user_ip << " erhalten (" << recvbytes << " Bytes)." << endl;
             DNS_HEADER packet_header = process_packets_header(speicher, recvbytes); 
             DNS_body packet_body = parse_dns_packet(speicher, packet_header, recvbytes);
-            if (packet_body.is_web == NULL) 
-            ; //skip
+            if (packet_body.is_web == NULL) {
+                cout << "ERROR beim parsen";
+                continue;
+             } //skip
             //zum test erstmal alle weiter leiten
-            skipforward((char*)speicher, recvbytes, send_socket);
+            skipforward((char*)speicher, recvbytes, send_socket, dns_adrrss, 0, user_adrr, user_adrr_len, mainsocket);
         }   
     }
 
