@@ -7,6 +7,7 @@
 #include <iphlpapi.h>
 #include <vector>
 #include <WS2tcpip.h>
+#include <unordered_set>
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "ws2_32.lib")
 
@@ -39,3 +40,5 @@ SOCKET create_send_socket(int port);
 // erstellt einen Socket der pakte zum DNS server sendet auf dem angegebenen Port und gibt diesen zurück. Bei Fehlern wird INVALID_SOCKET zurückgegeben.
 void skipforward(char * speicher, int len, SOCKET sckt, std::vector<std::string> dns_adrrss, int index, sockaddr_in user_addr, int addr_len, SOCKET main_socket);
 // sendet das packet an einen dns server
+std::unordered_set<string> lesen(string filename);
+//liest eine text datei mit dem Inhalt einer Blockliste und gibt diese in einem hashset zurück. Ist effizienter weil ich dann auf jedes Element mit ca. O(1) zugreifen kann.

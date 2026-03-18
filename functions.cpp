@@ -1,5 +1,6 @@
 #include "main.h"
 #include <Windows.h>
+#include <fstream>
 using namespace std;
 
 void set_DNS_server(bool activate, bool is_wifi) {
@@ -127,7 +128,7 @@ void skipforward(char * speicher, int len, SOCKET send_sckt, vector<string> dns_
         int result = sendto(send_sckt, speicher, len, 0, (sockaddr*)&svr_adr, sizeof(svr_adr));
         if (result == -1) {
             cout << "ERROR beim verschicken" << endl;
-            return;
+            continue;
         } 
         cout << "Erfolgreich Bytes versendet: " << len << endl;
         int timeout = 2000;
@@ -153,4 +154,16 @@ void skipforward(char * speicher, int len, SOCKET send_sckt, vector<string> dns_
         if (res == -1) cout << "Fehler beim senden der antwort" << endl;
     }
     return;
+}
+unordered_set<string> lesen(string filename) {
+    unordered_set<string> liste;
+    char buffer[512];
+    FILE* datei = fopen(filename.c_str(), "r");
+    if (datei == nullptr) return liste;
+
+    //hier lesen implementieren für Übung erst C weg dann C++ weg dann mit sql statt als datei
+    while (fgets(buffer, sizeof(buffer), datei) != NULL) { // fread könnte man hier auch nehmen aber fgets ist geeigneter, weil man hier nur Zeile für Zeile liest und byte für byte, also brauct man das hier nicht bzw. es nicht unnötig.
+        liste.insert(buffer);
+    }
+    return liste;
 }
