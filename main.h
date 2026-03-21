@@ -42,3 +42,5 @@ void skipforward(char * speicher, int len, SOCKET sckt, std::vector<std::string>
 // sendet das packet an einen dns server
 std::unordered_set<std::string> lesen(std::string filename);
 //liest eine text datei mit dem Inhalt einer Blockliste und gibt diese in einem hashset zurück. Ist effizienter weil ich dann auf jedes Element mit ca. O(1) zugreifen kann.
+BOOL WINAPI check_quit(DWORD ctrlType);
+// schaut ob das programm geschlossen wird um noch den DNS server wieder DHCP zu setzen

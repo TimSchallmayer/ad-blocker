@@ -170,3 +170,18 @@ unordered_set<string> lesen(string filename) {
      // finden von domains klappt nicht mal schauen was sich da noch ändern lässt
     return liste;
 }
+BOOL WINAPI check_quit(DWORD type) {
+    switch (type) {
+        case CTRL_CLOSE_EVENT:
+        case CTRL_LOGOFF_EVENT:
+        case CTRL_SHUTDOWN_EVENT:
+        case CTRL_C_EVENT:
+
+            set_DNS_server(false, true);
+            set_DNS_server(false, false);
+
+            return TRUE;
+        default:
+            return FALSE;
+    }
+}
