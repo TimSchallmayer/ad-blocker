@@ -75,7 +75,7 @@ DNS_HEADER process_packets_header(unsigned char* speicher, int bytes) {
     unsigned short flags = ntohs(*(unsigned short*)(speicher + 2));
     unsigned short qcount = ntohs(*(unsigned short*)(speicher + 4));
     bool is_anfrage = (flags & 0x8000);
-    cout << "Paket empfagen. ID: " << id << " Typ: " << (is_anfrage ? " Anfrage " : " Antwort ")<< " Anzahl der Adressen: " << qcount << endl;
+  //  cout << "Paket empfagen. ID: " << id << " Typ: " << (is_anfrage ? " Anfrage " : " Antwort ")<< " Anzahl der Adressen: " << qcount << endl;
     DNS_HEADER header;
     header.id = id;
     header.flags = flags;
@@ -114,7 +114,7 @@ DNS_body parse_dns_packet(unsigned char* speicher, DNS_HEADER header, int recv_b
 
 
     if (qclass != 0x01) return {NULL, NULL, NULL};
-    cout << "Erfolgreich dns packet geparst. Name: " << name << " Web?:" << is_web << " Klasse: " << qclass << endl;
+  //  cout << "Erfolgreich dns packet geparst. Name: " << name << " Web?:" << is_web << " Klasse: " << qclass << endl;
     return {is_web, name, qclass};
 }
 void skipforward(char * speicher, int len, SOCKET send_sckt, vector<string> dns_adrrss, int index, sockaddr_in user_addr, int addr_len, SOCKET main_socket) {
@@ -127,10 +127,10 @@ void skipforward(char * speicher, int len, SOCKET send_sckt, vector<string> dns_
         inet_pton(AF_INET, dns_adrr.c_str(), &svr_adr.sin_addr); // schlechte lösung weil das hier ja eigentlich ausfallen könnte und man sollte am besten merhere ooptionen haben
         int result = sendto(send_sckt, speicher, len, 0, (sockaddr*)&svr_adr, sizeof(svr_adr));
         if (result == -1) {
-            cout << "ERROR beim verschicken" << endl;
+        //    cout << "ERROR beim verschicken" << endl;
             continue;
         } 
-        cout << "Erfolgreich Bytes versendet: " << len << endl;
+     //   cout << "Erfolgreich Bytes versendet: " << len << endl;
         int timeout = 2000;
         setsockopt(send_sckt, SOL_SOCKET, SO_RCVTIMEO, (const char*)&timeout, sizeof(timeout));;
 
@@ -139,7 +139,7 @@ void skipforward(char * speicher, int len, SOCKET send_sckt, vector<string> dns_
         unsigned char recv_speicher[1024];
 
         int recv_bytes = recvfrom(send_sckt, (char *)&recv_speicher, sizeof(recv_speicher), 0, (struct sockaddr*)&recv_addr, &recv_addr_size);
-        cout << "Antwort Bytes: " << recv_bytes << endl;
+      //  cout << "Antwort Bytes: " << recv_bytes << endl;
         if (recv_bytes == SOCKET_ERROR)
         {
             if (index +1 >= dns_adrrss.size())
@@ -157,13 +157,16 @@ void skipforward(char * speicher, int len, SOCKET send_sckt, vector<string> dns_
 }
 unordered_set<string> lesen(string filename) {
     unordered_set<string> liste;
-    char buffer[512];
+    char buffer[128];
     FILE* datei = fopen(filename.c_str(), "r");
     if (datei == nullptr) return liste;
 
     //hier lesen implementieren für Übung erst C weg dann C++ weg dann mit sql statt als datei
-    while (fgets(buffer, sizeof(buffer), datei) != NULL) { // fread könnte man hier auch nehmen aber fgets ist geeigneter, weil man hier nur Zeile für Zeile liest und byte für byte, also brauct man das hier nicht bzw. es nicht unnötig.
+    while (fgets(buffer, 128, datei) != NULL) { 
+     //   cout << buffer << endl;// fread könnte man hier auch nehmen aber fgets ist geeigneter, weil man hier nur Zeile für Zeile liest und byte für byte, also brauct man das hier nicht bzw. es nicht unnötig.
+        buffer[strcspn(buffer, "\n")] = 0;
         liste.insert(buffer);
     }
+     // finden von domains klappt nicht mal schauen was sich da noch ändern lässt
     return liste;
 }
